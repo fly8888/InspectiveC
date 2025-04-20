@@ -1,9 +1,11 @@
-
 // arm32 hooking magic.
 
 // Called in our replacementObjc_msgSend before calling the original objc_msgSend.
 // This pushes a CallRecord to our stack, most importantly saving the lr.
 // Returns orig_objc_msgSend.
+#ifdef __arm__
+__attribute__((aligned(4)))
+#endif
 uintptr_t preObjc_msgSend(id self, uintptr_t lr, SEL _cmd, va_list args) {
   ThreadCallStack *cs = getThreadCallStack();
   pushCallRecord(self, lr, _cmd, cs);
@@ -17,6 +19,12 @@ uintptr_t preObjc_msgSend(id self, uintptr_t lr, SEL _cmd, va_list args) {
 __attribute__((__naked__))
 static void replacementObjc_msgSend() {
   __asm__ volatile (
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
   // Make sure it's enabled.
       "push {r0-r3, lr}\n"
       "blx _InspectiveC_isLoggingEnabled\n"

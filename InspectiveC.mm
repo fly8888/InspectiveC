@@ -306,16 +306,16 @@ static FILE * newFileForThread() {
   pid_t pid = getpid();
   char path[MAX_PATH_LENGTH];
 
-  sprintf(path, "%s/InspectiveC", directory);
+  snprintf(path,MAX_PATH_LENGTH, "%s/InspectiveC", directory);
   mkdir(path, 0755);
-  sprintf(path, "%s/InspectiveC/%s", directory, exeName);
+  snprintf(path,MAX_PATH_LENGTH, "%s/InspectiveC/%s", directory, exeName);
   mkdir(path, 0755);
 
   if (pthread_main_np()) {
-    sprintf(path, "%s/InspectiveC/%s/%d_main.log", directory, exeName, pid);
+    snprintf(path,MAX_PATH_LENGTH, "%s/InspectiveC/%s/%d_main.log", directory, exeName, pid);
   } else {
     mach_port_t tid = pthread_mach_thread_np(pthread_self());
-    sprintf(path, "%s/InspectiveC/%s/%d_t%u.log", directory, exeName, pid, tid);
+    snprintf(path,MAX_PATH_LENGTH, "%s/InspectiveC/%s/%d_t%u.log", directory, exeName, pid, tid);
   }
   return fopen(path, "a");
 }
@@ -549,6 +549,9 @@ static inline void preObjc_msgSend_common(id self, uintptr_t lr, SEL _cmd, Threa
 
 // Called in our replacementObjc_msgSend after calling the original objc_msgSend.
 // This returns the lr in r0/x0.
+#ifdef __arm__
+__attribute__((aligned(4)))
+#endif
 uintptr_t postObjc_msgSend() {
   ThreadCallStack *cs = (ThreadCallStack *)pthread_getspecific(threadKey);
   CallRecord *record = popCallRecord(cs);
@@ -579,7 +582,7 @@ static void hook() {
 #include <substrate.h>
 
 static void hook() {
-  MSHookFunction(&objc_msgSend, (id (*)(id, SEL, ...))&replacementObjc_msgSend, &orig_objc_msgSend);
+  MSHookFunction((void *)objc_msgSend, (void*)&replacementObjc_msgSend, (void **)&orig_objc_msgSend);
 }
 #endif
 

@@ -31,6 +31,12 @@ struct ObjcMsgSendAndEnabled preObjc_msgSend(id self, uintptr_t lr, SEL _cmd, st
 __attribute__((__naked__))
 static void replacementObjc_msgSend() {
   __asm__ volatile (
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
+      "nop\n"
     // push {q0-q7}
       "stp q6, q7, [sp, #-32]!\n"
       "stp q4, q5, [sp, #-32]!\n"
